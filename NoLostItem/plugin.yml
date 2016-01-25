@@ -1,0 +1,27 @@
+name: NoLostItem
+main: NoLostItem\NoLostItem
+version: 1.0.0
+api: [1.11.0]
+load: POSTWORLD
+author: haniokasaidescription: secure door!
+website: haniokasai.com
+
+commands:
+ NoLostItem:
+   aliases: [nolost , nl]
+   description: NoLostItem commands.
+   permission: NoLostItem
+   
+permissions:
+ NoLostItem:
+  default: op
+  description: NoLostItem permissions.
+  children:
+   NoLostItem.commands:
+    default: op
+    description: NoLostItem commands permissions.
+    children:
+      NoLostItem.commands.backup:
+       default: op
+       description: NoLostItem command backup permission.
+
