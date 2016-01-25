@@ -1,0 +1,86 @@
+---
+↓libreのプレイヤーファイル: ~
+例: 5
+player:
+  ip: "null"
+  cid: aaa
+  kill: 5
+  renkill: 48046
+  playerrenkill: 5
+  isop_: 5
+  exp: 5
+  例おしまい: 0
+haniokasai:
+  ip: 192.168.1.2
+  cid: 1681724272
+  uuid: bbb73ced-2675-3042-83f2-0959d5e180f5
+  kill: 10
+  renkill: 0
+  isop: 0
+  exp: 0
+haniokasa2:
+  ip: 192.168.1.6
+  cid: 1681724272
+  uuid: 9dd377b0-fd45-3096-8571-3f6c5879f340
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+haniokasa23:
+  ip: 192.168.1.6
+  cid: 1681724272
+  uuid: 78275e8e-7478-345e-848b-d95e30b9fd57
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+skeeee:
+  ip: SPECTER
+  cid: 1
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+haniokasai_pvp:
+  ip: 192.168.1.2
+  cid: 1681724272
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+sdkas:
+  ip: SPECTER
+  cid: 1
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+aaaa:
+  ip: SPECTER
+  cid: 1
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+tester:
+  ip: SPECTER
+  cid: 1
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+haniokasai_sub:
+  ip: 192.168.1.4
+  cid: 1681724272
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+haniokasai2:
+  ip: 192.168.1.9
+  cid: "120223399"
+  kill: 0
+  renkill: 0
+  isop: 0
+  exp: 0
+...

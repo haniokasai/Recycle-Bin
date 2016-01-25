@@ -1,0 +1,372 @@
+<?php
+
+namespace librepvp;
+use pocketmine\Server;
+use pocketmine\command\Command;
+use pocketmine\command\CommandExecutor;
+use pocketmine\command\CommandSender;
+use pocketmine\event\Listener;
+use pocketmine\event\player\PlayerChatEvent;
+use pocketmine\Player;
+use pocketmine\plugin\PluginBase;
+use pocketmine\level\Position;
+use pocketmine\level\Explosion;
+use pocketmine\tile\Tile;
+use pocketmine\event\Event\getEventName;
+use pocketmine\event\player\PlayerDeathEvent;
+use pocketmine\event\player\PlayerJoinEvent;
+use pocketmine\event\player\PlayerRespawnEvent;
+use pocketmine\IPlayer;
+use pocketmine\event\player\PlayerQuitEvent;
+use pocketmine\utils\Config;
+use pocketmine\utils\TextFormat;
+use pocketmine\item\Item;
+use pocketmine\math\Vector3;
+use pocketmine\level\Level;
+use pocketmine\block\Block;
+use pocketmine\tile\Sign;
+use pocketmine\event\block\SignChangeEvent;
+use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\command\ConsoleCommandSender;
+use pocketmine\event\block\BlockBreakEvent;
+use pocketmine\event\block\BlockPlaceEvent;
+use pocketmine\scheduler\CallbackTask;
+use pocketmine\scheduler\ServerScheduler;
+use pocketmine\scheduler\PluginTask;
+use pocketmine\entity\Effect;
+use pocketmine\network\protocol\AddEntityPacket;
+
+class librepvp extends PluginBase implements Listener{
+		 public function onEnable(){
+	/*		
+$salt ="ask";
+$authcode = $salt.gmdate("Y/m/d H:i");
+$authhash = hash( 'SHA256', $authcode ); 
+$hashed0_code = hash( 'SHA256', $authhash.'pasdsdsdsfdss' ); 
+$hashed_code = hash( 'SHA256', $hashed0_code.'skatdsdsdsaa' ); 
+echo $hashed_code;
+*/
+		$this->getServer()->getPluginManager()->registerEvents($this,$this);
+		$this->team = [1 => [] , 2 => [] ];
+#		$cmd ="stop";
+#		Server::getInstance()->dispatchCommand(new ConsoleCommandSender(), $cmd);
+		if(!file_exists($this->getDataFolder())){
+			@mkdir($this->getDataFolder(), 0744, true);
+		}
+		if(!file_exists($this->getDataFolder() . "config.yml")){
+			$this->settings = new config($this->getDataFolder() . "config.yml", config::YAML, array(
+			"↓libreの設定ファイル"=> null,
+			"鯖自体のID" => 5,
+			"鯖自体のパスワード" => 5,
+			"3" => 5,
+			"4" => 5,
+			));
+		}else{
+			$this->settings = new config($this->getDataFolder() . "config.yml", config::YAML, array());
+		}
+
+		if(!file_exists($this->getDataFolder() . "player.yml")){
+			$this->pset = new config($this->getDataFolder() . "player.yml", config::YAML, array(
+			"↓libreのプレイヤーファイル"=> null,
+			"例" => 5,
+			 "player"=> array(
+        		"ip"=> null,
+				"cid"=> "aaa",
+        		"kill"=> 5,
+      			"renkill"=> 48046,
+				"isop_" => 5,
+				"exp" => 5,
+				"例おしまい"=>0000000,
+			)));
+		}else{
+			$this->pset = new config($this->getDataFolder() . "player.yml", config::YAML, array());
+		}
+
+		$this->getServer()->getPluginManager()->registerEvents($this,$this);
+		
+        	if(is_dir($this->getServer()->getPluginPath()."EconomyAPI")){
+				$this->getLogger()->info(TextFormat::GREEN."Economy読み込んだよ!");
+				$this->economy = true;
+			}else{
+				$this->getLogger()->info(TextFormat::RED."EconomyAPIなかったよ～");
+				$this->economy = false;
+			}
+			}
+			
+	 public function onDisable(){
+        unset($this->players);
+		unset($this->joined);
+		foreach($this->getServer()->getOnlinePlayers() as $p){
+			$name = $p->getName();
+				global ${"joined_".$name};
+				$p->kick("鯖がリロードまたは終了しました。");
+			if(${"joined_".$name} == 1){
+				$pos = new Position(128,71,128,world);
+				$p->teleport($pos);
+				
+				
+				${"joined_".$name} = 0;
+			}
+		}
+        $this->getLogger()->info(TextFormat::RED ."終了しました。");
+    }
+	
+public function onCommand(CommandSender $sender, Command $command,$label,array $args){
+	switch($command->getName()){
+	case "cid":{
+                if(!isset($args[0])){
+					$sender->sendMessage("Usege: /cid プレイヤー名");
+					break;
+								}
+
+
+				foreach($this->getServer()->getOnlinePlayers() as $p){
+				$k2name = $p->getName();
+				if($k2name == $args[0]){
+					$okkick = 1;
+				}
+								}
+				if(!isset($okkick)){
+				$sender->sendMessage(TextFormat::RED. " [LibrePVP] そんな人はいません。");
+				break;
+				}
+
+									
+				$playerk = $this->getServer()->getPlayer($args[0]);
+				$name = $sender->getName();
+				$kname =  $playerk->getName();
+				$cfg = $this->pset->getAll();
+				$cid = $playerk->loginData["clientId"];
+				$fcid = $cfg[$kname]["cid"];
+				$this->getServer()->broadcastMessage(TextFormat::RED. " [LibrePVP] ".$kname."のcidは".$cid."です。初回ログイン時のcidは".$fcid."です。");
+
+				break;
+				
+				
+	}
+	case "con":{
+                $this->con($sender);
+                $sender->sendMessage(TextFormat::RED ."[SekaiPVP] チャットオンにしました。");
+                break;
+	}
+	case "mi":{
+		$this->pset->reload() ;
+		$name = $sender->getName();	
+		$cfg = $this->pset->getAll();
+		$killcount = $cfg[$name]["kill"];
+		$exp = $cfg[$name]["exp"];
+		$rekill = $cfg[$name]["renkill"];
+		$sender->sendMessage(TextFormat::RED ."[SekaiPVP]あなたは".$killcount."回プレイヤーを倒しました。");
+		$sender->sendMessage(TextFormat::RED ."[SekaiPVP]あなたは".$renkill."回プレイヤーを倒し続けました。");
+		$sender->sendMessage(TextFormat::RED ."[SekaiPVP]あなたは".$exp."EXPです。");
+		break;
+	}
+	}
+}
+			
+
+
+/////死んだときイベント////
+ public function onPlayerDeath(PlayerDeathEvent $event){
+        $ev = $event->getEntity()->getLastDamageCause();
+        if ($ev instanceof EntityDamageByEntityEvent) {
+            $killer = $ev->getDamager();
+            if ($killer instanceof Player) {
+                $this->getServer()->getPluginManager()->getPlugin("EconomyAPI")->addMoney($killer->getName(), 50);
+                $killer->sendMessage(""."[LibrePVP]"." 50$"."得ました。"."");
+				$name = $event->getEntity()->getName();		
+				
+				if($this->team[1][$name] == 1){
+///////ここにコア設定
+				}else{
+
+				}
+				
+				$killername =  $killer->getName();
+				$cfg = $this->pset->getAll();
+				$killerbf = $cfg[$killername]["kill"];
+				$killernow = $killerbf + 1;
+				$killrenbf = $cfg[$killername]["renkill"];
+				$killrennow = $killrenbf + 1;
+				$this->pset->set(array("player"=>array("kill"=>$killernow)));//値と名前を設定
+				$this->pset->save();//設定を保存
+				$this->pset->set(array("player"=>array("renkill"=>$killrennow)));//値と名前を設定
+				$this->pset->save();//設定を保存
+				$this->pset->reload;
+			
+				$this->coff($killer);
+				$this->con($killer);
+			foreach($event->getEntity()->getEffects() as $effect){
+				$event->getEntity()->removeEffect($effect->getId());
+			}
+				}
+					
+
+            }
+        
+
+			$player = $event->getEntity();
+			$this->joined[$name] = 0;
+			$pos = new Position(128,71,128,world);//座標を指定
+			$player->teleport($pos);
+				
+		}
+	
+////join字
+	public function joinplayer(PlayerJoinEvent $event){
+		$player = $event->getPlayer();
+		$name = $player->getName();
+		$cid = $player->loginData["clientId"];
+		$ip = $player->getAddress();
+#	$uuid = $player->getUniqueId();
+
+	if($this->pset->exists($name)){
+		$cfg = $this->pset->getAll();
+		$killcount = $cfg[$name]["kill"];
+		$exp = $cfg[$name]["exp"];	
+	}else{
+		$this->pset = new config($this->getDataFolder() . "player.yml", config::YAML, array(
+		$name=> array(
+        			"ip"=> $ip,
+					"cid"=> $cid,
+#					"uuid"=> $uuid,
+        			"kill"=> 0,
+      				"renkill"=> 0,
+					"isop" => 0,
+					"exp" => 0,
+					)));
+		$this->pset->save();//設定を保存
+		$killcount = 0;
+		$exp = 0;
+		$this->pset->reload() ;
+		}
+////
+if(!isset($this->joined[$name])){
+	$this->joined[$name] = 0;
+}
+	if(count($this->team[1]) <= count($this->team[2]) and $this->joined[$name] == 0){
+		 	$this->team[1][$name] = 1;
+			$player->sendMessage(TextFormat::RED ."[LibrePVP]あなたはレッドチームです。");
+			$player->setNameTag(TextFormat::AQUA . "[レッド]"."[".$killcount."kill,".$exp."EXP]".$player->getDisplayName()."");
+			$this->joined[$name] = 1;
+			$this->coff($player);
+			$this->con($player);
+			$event->getPlayer()->sendMessage(TextFormat::YELLOW."[LibrePVP]前回の位置にスポーンしました。");
+			
+	}elseif(count($this->team[1]) <= count($this->team[2]) and !$this->joined[$name]){
+		 	$this->team[1][$name] = 1;
+			$player->sendMessage(TextFormat::RED ."[LibrePVP]あなたはレッドチームです。");
+			$player->setNameTag(TextFormat::AQUA . "[レッド]"."[".$killcount."kill,".$exp."EXP]".$player->getDisplayName()."");
+			$this->coff($player);
+			$this->con($player);
+
+			$level = Server::getInstance()->getLevelByName("world");
+			$pos = new Position(128,71,128,$level);//座標を指定
+			$player->teleport($pos);
+	
+	}elseif(count($this->team[1]) > count($this->team[2]) and $this->joined[$name] == 0){
+		$this->team[2][$name] = 1;
+			$player->sendMessage(TextFormat::RED ."[LibrePVP]あなたはラピチームです。");
+			$player->setNameTag(TextFormat::GREEN . "[ラピ]"."[".$killcount."kill,".$exp."EXP]".$player->getDisplayName()."");
+	$this->coff($player);
+			$this->con($player);
+			$event->getPlayer()->sendMessage(TextFormat::YELLOW."[LibrePVP]前回の位置にスポーンしました。");
+					$this->joined[$name] = 1;
+		}elseif(count($this->team[1]) > count($this->team[2]) and !$this->joined[$name]){
+		$this->team[2][$name] = 1;
+			$player->sendMessage(TextFormat::RED ."[LibrePVP]あなたはラピチームです。");
+			$player->setNameTag(TextFormat::GREEN . "[ラピ]"."[".$killcount."kill,".$exp."EXP]".$player->getDisplayName()."");
+	$this->coff($player);
+			$this->con($player);
+			$event->getPlayer()->sendMessage(TextFormat::YELLOW."[LibrePVP]前回の位置にスポーンしました。");
+			$this->coff($player);
+			$this->con($player);
+			$level = Server::getInstance()->getLevelByName("world");
+			$pos = new Position(128,71,128,$level);//座標を指定
+			$player->teleport($pos);
+					
+		}
+/////
+	
+	
+
+	
+	
+	
+			///スポーン関係
+			
+	if(isset($this->joined[$name])){
+		
+	}else{
+		
+		
+	}
+	}
+
+	
+	
+	
+/////おしまい☆
+///おしまい☆
+
+
+	
+	///////終了時
+	public function theendtime(){
+		foreach($this->getServer()->getOnlinePlayers() as $p){
+		$this->joined[$name] = 0;
+		$pos = new Position(128,71,128,world);//座標を指定
+		$player->teleport($pos);
+	}
+	unset($this->joined);
+	}
+	
+///////chat関連
+	public function con(Player $player){
+        	unset($this->players[$player->getName()]);
+    	}
+	
+	public function coff(Player $player){
+	        $this->players[$player->getName()] = $player->getName();
+	}
+	public function onChat(PlayerChatEvent $event){
+        $player = $event->getPlayer();
+		$name = $player->getName();
+		$cfg = $this->pset->getAll();
+		$killcount = $cfg[$name]["kill"];
+		$exp = $cfg[$name]["exp"];
+        if($player instanceof Player){
+            if(!$event->isCancelled()){
+                $user = $player->getName();
+                $message = $event->getMessage();
+                
+			if($this->team[1][$name] == 1){
+       			if(!$event->getPlayer()->isOp()){
+				$format = "".TextFormat::AQUA . "[レッド]"."[".$killcount."kill,".$exp."EXP]<".$user.">".TextFormat::RESET.$message;
+				}else{
+				$format = "".TextFormat::AQUA . "[レッド]"."[OP][".$killcount."kill,".$exp."EXP]<".$user.">".TextFormat::RESET.$message;	
+				}
+			}else{
+				 if(!$event->getPlayer()->isOp()){
+				$format = "".TextFormat::GREEN . "[ラピ]"."[".$killcount."kill,".$exp."EXP]<".$user.">".TextFormat::RESET.$message;
+				}else{
+				$format = "".TextFormat::GREEN . "[ラピ]"."[OP][".$killcount."kill,".$exp."EXP]<".$user.">".TextFormat::RESET.$message;	
+				}
+				}
+				
+				
+				$this->getLogger()->info($format);
+				
+                foreach($this->getServer()->getOnlinePlayers() as $p){
+                        $p->sendMessage($format);
+                    }
+                $event->setCancelled();
+		}
+        }unset($killcount);
+		unset($exp);
+    }
+	
+
+
+}
+////////chat関連おしまい
